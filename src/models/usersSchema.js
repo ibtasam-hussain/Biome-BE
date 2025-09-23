@@ -23,11 +23,13 @@ const User = sequelize.define("User", {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    email: {
-        type: DataTypes.STRING(150),
-        allowNull: false,
-        unique: true,
-    },
+email: {
+  type: DataTypes.STRING(150),
+  allowNull: false,
+  unique: {
+    name: "unique_email",   // <— fixed name for the index
+  },
+},
     password: {
         type: DataTypes.STRING,
     },
