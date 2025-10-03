@@ -20,7 +20,7 @@ router.get(
     });
 
     // redirect back to frontend with token
-    res.redirect(`http://localhost:8080/social-login?token=${token}`);
+    res.redirect(`${process.env.FE_URL}social-login?token=${token}`);
   }
 );
 
@@ -34,7 +34,7 @@ router.get("/facebook/callback",
   passport.authenticate("facebook", { failureRedirect: "/login", session: false }),
   (req, res) => {
     const token = jwt.sign({ user: req.user }, process.env.JWT_SECRET, { expiresIn: "1d" });
-    res.redirect(`http://localhost:8080/social-login?token=${token}`);
+    res.redirect(`${process.env.FE_URL}social-login?token=${token}`);
   }
 );
 

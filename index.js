@@ -10,7 +10,13 @@ require("./src/controllers/passport");
 const socialRoutes = require("./src/routes/social.routes");
 
 const app = express();
-app.use(cors());
+
+app.use(cors(
+  {
+    origin: "*",
+    credentials: true,
+  }
+));
 app.use(express.json());
 app.use(passport.initialize());
 
@@ -26,7 +32,7 @@ app.get("/", (req, res) => {
 // Use Routes
 app.use("/api/users", userRoutes);
 app.use("/api/chats", chatRoutes);
-app.use("/api/social", socialRoutes);
+app.use("/api/social-login", socialRoutes);
 
 (async () => {
   try {

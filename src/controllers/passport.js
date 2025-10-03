@@ -9,12 +9,12 @@ passport.use(
     {
       clientID: process.env.FACEBOOK_APP_ID,
       clientSecret: process.env.FACEBOOK_APP_SECRET,
-      callbackURL: "http://localhost:3000/api/social/facebook/callback",
+      callbackURL: `${process.env.BE_URL}api/social-login/facebook/callback`, // ✅ backend URL
       profileFields: ["id", "emails", "name", "displayName", "photos"],
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-         console.log("🔎 Facebook profile:", profile);
+        console.log("🔎 Facebook profile:", profile);
         const email = profile.emails?.[0]?.value || `${profile.id}@facebook.com`;
 
         let user = await User.findOne({
@@ -26,7 +26,7 @@ passport.use(
             firstName: profile.name?.givenName || profile.displayName || "Facebook",
             lastName: profile.name?.familyName || "",
             email,
-            profile : profile.photos?.[0]?.value || null,
+            profile: profile.photos?.[0]?.value || null,
             provider: "facebook",
             providerId: profile.id,
           });
@@ -41,14 +41,13 @@ passport.use(
   )
 );
 
-
 //  Google Strategy
 passport.use(
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "http://localhost:3000/api/social/google/callback",
+      callbackURL: `${process.env.BE_URL}api/social-login/google/callback`, // ✅ backend URL
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -75,6 +74,7 @@ passport.use(
     }
   )
 );
+
 
 //  Serialize & Deserialize
 passport.serializeUser((user, done) => {
