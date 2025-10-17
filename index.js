@@ -11,12 +11,27 @@ const socialRoutes = require("./src/routes/social.routes");
 
 const app = express();
 
-app.use(cors(
-  {
-    origin: "*",
+
+const allowedOrigins = [
+  "http://localhost:8080",
+  "https://biome.hubaix.world"
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log("❌ CORS blocked for origin:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
-  }
-));
+  })
+);
+
 app.use(express.json());
 app.use(passport.initialize());
 
@@ -31,7 +46,7 @@ app.get("/", (req, res) => {
 
 // Use Routes
 app.use("/api/users", userRoutes);
-app.use("/api/chats", chatRoutes);
+app.use("/api", chatRoutes);
 app.use("/api/social-login", socialRoutes);
 
 (async () => {

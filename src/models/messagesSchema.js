@@ -1,43 +1,23 @@
-// src/models/message.model.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
+const Chat = require("./chatSchema");
 
-// Dialect-aware JSON type
-const dialect = sequelize.getDialect();
-// Postgres => JSONB, MySQL/MariaDB/MSSQL => JSON, SQLite/older => TEXT fallback
-const useText = ["sqlite"].includes(dialect);
-const JSONType =
-  dialect === "postgres" ? DataTypes.JSONB :
-  useText ? DataTypes.TEXT : DataTypes.JSON;
-
-const Message = sequelize.define("Message", {
-  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-  chatId: { type: DataTypes.INTEGER, allowNull: false },
-  sender: { type: DataTypes.ENUM("user", "ai"), allowNull: false },
-  content: { type: DataTypes.TEXT, allowNull: false },
-
-  // NEW: store full AI payload (ans/source/where_to_find/tools/timestamps/query/success/error)
-  meta: {
-    type: JSONType,
-    allowNull: true,
-    // If DB doesn't support native JSON, store as TEXT (stringify/parse)
-    ...(useText && {
-      get() {
-        const raw = this.getDataValue("meta");
-        try { return raw ? JSON.parse(raw) : null; } catch { return null; }
-      },
-      set(val) {
-        this.setDataValue("meta", val ? JSON.stringify(val) : null);
-      },
-    }),
+const Message = sequelize.define(
+  "Message",
+  {
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    chatId: { type: DataTypes.INTEGER, allowNull: false },
+    sender: { type: DataTypes.ENUM("user", "ai"), allowNull: false },
+    content: { type: DataTypes.TEXT, allowNull: false },
+    meta: { type: DataTypes.JSON, allowNull: true },
   },
-}, {
-  timestamps: true,
-  tableName: "messages",
-  indexes: [
-    { fields: ["chatId", "createdAt"] },
-    { fields: ["chatId"] },
-  ],
-});
+  {
+    timestamps: true,
+    tableName: "messages",
+  }
+);
+
+Message.belongsTo(Chat, { foreignKey: "chatId", onDelete: "CASCADE" });
+Chat.hasMany(Message, { foreignKey: "chatId" });
 
 module.exports = Message;
