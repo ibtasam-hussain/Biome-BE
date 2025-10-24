@@ -2,7 +2,7 @@ const axios = require("axios");
 const Chat = require("../models/chatSchema");
 const Message = require("../models/messagesSchema");
 const Group = require("../models/groupSchema");
-
+const UnansweredQuery = require("../models/unansweredQuery");
 // ✅ Create a Group
 exports.createGroup = async (req, res) => {
   try {
@@ -139,7 +139,7 @@ exports.addMessage = async (req, res) => {
     const chat = await Chat.findByPk(chatId);
     if (!chat) return res.status(404).json({ message: "Chat not found" });
 
-    // 1️⃣ Auto-rename chat title on first message
+    // 1️⃣ Auto-rename chat title on first user message
     if (sender === "user" && chat.title === "New Chat") {
       await chat.update({ title: content.substring(0, 50) });
     }
@@ -147,7 +147,7 @@ exports.addMessage = async (req, res) => {
     // 2️⃣ Save user message
     const userMsg = await Message.create({ chatId, sender, content });
 
-    // 3️⃣ Get recent message history for context
+    // 3️⃣ Get last 5 messages for context
     const lastMessages = await Message.findAll({
       where: { chatId },
       order: [["createdAt", "DESC"]],
@@ -159,20 +159,21 @@ exports.addMessage = async (req, res) => {
       .join("\n");
 
     // 4️⃣ Query the AI microservice
-    const startTime = Date.now(); // 🕒 Start time before sending request
+    const startTime = Date.now();
     const aiRes = await axios.post("http://147.79.75.202:8001/query", {
       query: content,
       chat_history: history,
     });
-    const endTime = Date.now(); // 🕒 End time after response received
-    const responseTime = ((endTime - startTime) / 1000).toFixed(2); // seconds
+    const endTime = Date.now();
+    const responseTime = ((endTime - startTime) / 1000).toFixed(2);
 
     const data = aiRes?.data || {};
-    const aiText = data.ans || "No reply";
+    const aiText =
+      data.ans ||
+      "I could not find any information or explanation related to your question in the course materials provided. Please refer to your course modules or lessons for more information.";
 
-    // 5️⃣ Handle new multi-source schema gracefully
+    // 5️⃣ Handle sources
     let sources = [];
-
     if (Array.isArray(data.sources) && data.sources.length > 0) {
       sources = data.sources.map((src) => ({
         source: src.source || null,
@@ -199,7 +200,7 @@ exports.addMessage = async (req, res) => {
       });
     }
 
-    // 6️⃣ Create AI message with updated meta + timestamp
+    // 6️⃣ Create AI message
     const aiMsg = await Message.create({
       chatId,
       sender: "ai",
@@ -209,14 +210,22 @@ exports.addMessage = async (req, res) => {
         query: data.query ?? content,
         success: data.success ?? true,
         error: data.error ?? null,
-        response_time: `${responseTime}s`, // ⏱️ AI response time
-        ai_timestamp: new Date().toISOString(), // 🕒 Timestamp of AI message
+        response_time: `${responseTime}s`,
+        ai_timestamp: new Date().toISOString(),
       },
     });
 
-    console.log("🤖 AI message:", aiMsg);
+    // 7️⃣ Save unanswered query if AI fallback message triggered
+    if (
+      aiText.includes(
+        "I could not find any information or explanation related to your question"
+      )
+    ) {
+      await UnansweredQuery.create({ message: content });
+      console.log("🧠 Unanswered query saved:", content);
+    }
 
-    // 7️⃣ Update chat’s updatedAt timestamp
+    // 8️⃣ Update chat’s timestamp
     await chat.update({ updatedAt: new Date() });
 
     res.json({ user: userMsg, ai: aiMsg });
@@ -225,6 +234,7 @@ exports.addMessage = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 
 // ✅ Get all chats of logged-in user

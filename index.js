@@ -33,6 +33,10 @@ app.use(
 );
 
 app.use(express.json());
+
+
+// ✅ Middleware to parse form-data (if you use file uploads)
+app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
 //make static folder  

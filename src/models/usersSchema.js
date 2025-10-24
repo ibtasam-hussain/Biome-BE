@@ -37,7 +37,7 @@ email: {
         type: DataTypes.STRING,
     },
     role: {
-        type: DataTypes.ENUM("user", "admin"),
+        type: DataTypes.ENUM("user", "admin", "superadmin"),
         defaultValue: "user",
     },
 }, {
