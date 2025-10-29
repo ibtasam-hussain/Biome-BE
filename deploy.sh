@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# PASSWORD : G2XMj;g9ovuHOOwwSt@h
+# PASSWORD : q&/65FMFJE'Vnu@H7V8H
 
 # === SSH CONFIG ===
 SSH_USER="root"
-SSH_HOST="147.79.75.202"
+SSH_HOST="72.60.175.234"
 REMOTE_DIR="/var/www/biome/BE/"
 
 echo "🧹 Cleaning up local node_modules and lock file..."

@@ -255,9 +255,10 @@ exports.getAllUsers = async (req, res) => {
     const offset = (page - 1) * limit;
 
     const users = await User.findAll({
+      where: { role: "user" },   // ✅ Only users
       offset,
       limit,
-      order: [["id", "DESC"]], // optional: to keep consistent order
+      order: [["id", "DESC"]],
     });
 
     res.json({ users });
@@ -265,6 +266,7 @@ exports.getAllUsers = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
 
 
 

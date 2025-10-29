@@ -14,7 +14,7 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:8080",
-  "https://biome.hubaix.world"
+  "https://biomelc.com"
 ];
 
 app.use(
