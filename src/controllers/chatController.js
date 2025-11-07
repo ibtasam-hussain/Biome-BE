@@ -160,17 +160,18 @@ exports.addMessage = async (req, res) => {
 
     // 4️⃣ Query the AI microservice
     const startTime = Date.now();
-    const aiRes = await axios.post("http://147.79.75.202:8001/query", {
+    const aiRes = await axios.post("https://python.biomelc.com/query", {
       query: content,
       chat_history: history,
     });
+    console.log(aiRes.data);
     const endTime = Date.now();
     const responseTime = ((endTime - startTime) / 1000).toFixed(2);
 
     const data = aiRes?.data || {};
     const aiText =
       data.ans ||
-      "I could not find any information or explanation related to your question in the course materials provided. Please refer to your course modules or lessons for more information.";
+      "I'm sorry, I don't yet have the knowledge to answer this question.";
 
     // 5️⃣ Handle sources
     let sources = [];
